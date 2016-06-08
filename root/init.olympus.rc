@@ -51,9 +51,15 @@ on fs
     exec /system/bin/logwrapper /system/bin/pds_perm_fix.sh
     start adbd
 
-   # Create this file in case it doesn't exist, needed to switch wifi modes:
-   write /data/misc/wifi/firmware_path ""
-   chmod 0666 /data/misc/wifi/firmware_path
+    # Create this file in case it doesn't exist, needed to switch wifi modes:
+    write /data/misc/wifi/firmware_path ""
+    chmod 0666 /data/misc/wifi/firmware_path
+
+    # Fix cpcap permission
+    chmod 666 /dev/cpcap
+    chmod 666 /dev/cpcap_batt
+    chmod 666 /dev/cpcap_mot_rtc
+    chmod 666 /dev/cpcap_uc
 
 on post-fs
     chown mot_accy mot_accy /pds/public/battd/batt_offset_data
