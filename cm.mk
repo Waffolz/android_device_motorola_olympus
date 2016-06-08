@@ -1,9 +1,3 @@
-## Specify phone tech before including full_phone
-$(call inherit-product, vendor/cm/config/gsm.mk)
-
-## Release name
-PRODUCT_RELEASE_NAME := Atrix
-
 #use low quality videos
 $(call inherit-product, frameworks/base/data/videos/VideoPackage1.mk)
 
@@ -13,11 +7,10 @@ $(call inherit-product, vendor/cm/config/common_full_phone.mk)
 ## Inherit device configuration
 $(call inherit-product, device/motorola/olympus/olympus.mk)
 
-PRODUCT_NAME := cm_olympus
- 
 ## Device identifier. This must come after all inclusions
+PRODUCT_RELEASE_NAME := Atrix
+PRODUCT_NAME := cm_olympus
 PRODUCT_DEVICE := olympus
-
 PRODUCT_MANUFACTURER=motorola
 
 ## Device fingerprint

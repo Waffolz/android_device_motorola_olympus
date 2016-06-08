@@ -6,26 +6,33 @@ on early-init
 
     export EXTERNAL_STORAGE /storage/sdcard0
     export SECONDARY_STORAGE /storage/sdcard1
+
     # create mountpoints for storage
-    mkdir /storage 0050 system sdcard_r
-    mkdir /storage/sdcard0 0000 system system
-    mkdir /storage/sdcard1 0000 system system
+    mkdir /storage 0775 system system
+    mkdir /storage/sdcard0 0775 system system
+    mkdir /storage/sdcard1 0775 system system
+
+    mkdir /mnt 0775 root system
+    mkdir /mnt/media_rw/ 0775 media_rw media_rw
+    mkdir /mnt/media_rw/sdcard0 0700 media_rw media_rw
+    mkdir /mnt/media_rw/sdcard1 0700 media_rw media_rw
+
+    # Support legacy paths
     symlink /storage/sdcard0 /sdcard
     symlink /storage/sdcard0 /mnt/sdcard
-    symlink /storage/sdcard1 /external_sd
+    symlink /storage/sdcard0 /storage/sdcard
     symlink /storage/sdcard1 /extSdCard
-    mkdir /storage/usbdisk0 0000 system system
-    mkdir /storage/usbdisk1 0000 system system
-    mkdir /storage/usbdisk2 0000 system system
-    mkdir /storage/usbdisk3 0000 system system
-    mkdir /storage/usbdisk4 0000 system system
-    mkdir /storage/usbdisk5 0000 system system
-    mkdir /storage/usbdisk6 0000 system system
-    mkdir /storage/usbdisk7 0000 system system
+    symlink /storage/sdcard1 /mnt/extSdCard
+    symlink /storage/sdcard1 /external_sd
+
+    mkdir /storage/usbdisk 0700 system system
+    mkdir /mnt/media_rw/usbdisk 0700 media_rw media_rw
 
 
 on init
     mkdir /pds 0755 root root
+    #mkdir /osh 0755 root root
+    #mkdir /preinstall 0755 root root
 
 on early-boot
     setprop ro.FOREGROUND_APP_MEM 3072
@@ -44,6 +51,10 @@ on fs
     exec /system/bin/logwrapper /system/bin/pds_perm_fix.sh
     start adbd
 
+   # Create this file in case it doesn't exist, needed to switch wifi modes:
+   write /data/misc/wifi/firmware_path ""
+   chmod 0666 /data/misc/wifi/firmware_path
+
 on post-fs
     chown mot_accy mot_accy /pds/public/battd/batt_offset_data
     chmod 0660 /pds/public/battd/batt_offset_data
@@ -58,15 +69,14 @@ on post-fs
 on post-fs-data
     mkdir /data/misc/wifi 0770 wifi wifi
     mkdir /data/misc/wifi/sockets 0770 wifi wifi
+    mkdir /data/misc/wifi/hostapd 0770 wifi wifi
     mkdir /data/misc/dhcp 0770 dhcp dhcp
     chown dhcp dhcp /data/misc/dhcp
     #directory to hwui blacklist
-    mkdir /data/local/hwui.deny 0775 system system
+    #mkdir /data/local/hwui.deny 0775 system system
 
-    chown system /data/am2data.db
-    chown system /data/am2data.db.meta
-    chgrp system /data/am2data.db
-    chgrp system /data/am2data.db.meta
+    chown system system /data/am2data.db
+    chown system system /data/am2data.db.meta
     # Set the default value for bluedroid_ref
     write /data/tmp/bluedroid_ref 0
     chown system system /data/tmp/bluedroid_ref
@@ -74,12 +84,20 @@ on post-fs-data
     setprop vold.post_fs_data_done 1
 
 on boot
-    chown system /dev/aes1750
-    chgrp system /dev/aes1750
+    chown system system /dev/aes1750
     chmod 0600 /dev/aes1750
 
     # Adjust Android LMK
-    write /sys/module/lowmemorykiller/parameters/minfree 3072,4608,7200,11776,17408,21000
+    # Original was: 3072,4608,7200,11776,17408,21000
+    write /sys/module/lowmemorykiller/parameters/minfree 3072,4608,6500,16000,18000,60000
+    # And some help from the kernel to try to keep this extra amount free available
+    #  whenever possible.
+    setprop sys.sysctl.extra_free_kbytes 18432
+
+    chmod 0644 /proc/cmdline
+
+    chown radio radio /sys/class/radio/mdm6600/command
+    chmod 0220 /sys/class/radio/mdm6600/command
 
     # OSH properties
     setprop sys.SystemMode RM_SM_MOBILE
@@ -234,28 +252,21 @@ service akmd8975 /system/bin/akmd8975
     group compass misc input
 
 service wpa_supplicant /system/bin/wpa_supplicant \
-    -Dwext -ieth0 -c/data/misc/wifi/wpa_supplicant.conf
+    -Dnl80211 -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf -O/data/misc/wifi/sockets \
+    -g@android:wpa_wlan0 -e/data/misc/wifi/entropy.bin
     #   we will start as root and wpa_supplicant will switch to user wifi
     #   after setting up the capabilities required for WEXT
     #   user wifi
     #   group wifi inet keystore
-    socket wpa_eth0 dgram 660 wifi wifi
     class main
+    socket wpa_wlan0 dgram 660 wifi wifi
     disabled
     oneshot
 
-service dhcpcd_eth0 /system/bin/dhcpcd -ABKL
+service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL
     class main
     disabled
     oneshot
-
-#BCM
-service hciattach /system/bin/brcm_patchram_plus --enable_hci --enable_lpm \
-    --use_baudrate_for_download --baudrate 3000000 --patchram /etc/firmware/BCM4329B1_002.002.023.0757.0780.hcd /dev/ttyHS2
-    class main
-    user bluetooth
-    group bluetooth net_bt_admin
-    disabled
 
 service battd /system/bin/battd
     class core
@@ -332,8 +343,33 @@ service aplogd /system/bin/aplogd
     # for kernel logging.
     disabled
 
+service fuse_sdcard0 /system/bin/sdcard -u 1023 -g 1023 -d /mnt/media_rw/sdcard0 /storage/sdcard0
+    class late_start
+    disabled
+
+service fuse_sdcard1 /system/bin/sdcard -u 1023 -g 1023 -d /mnt/media_rw/sdcard1 /storage/sdcard1
+    class late_start
+    disabled
+
+service fuse_usbdisk /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d /mnt/media_rw/usbdisk /storage/usbdisk
+    class late_start
+    disabled
+
 on property:persist.log.aplogd.enable=1
     start aplogd
 
 on property:persist.log.aplogd.enable=0
     stop aplogd
+
+# Fingerprint sensor daemon
+#service am2server /system/bin/am2server
+#    disabled
+#    class main
+#    user root
+#    group root
+
+on property:service.adb.root=1
+    write /sys/class/android_usb/android0/enable 0
+    restart adbd
+    write /sys/class/android_usb/android0/enable 1
+

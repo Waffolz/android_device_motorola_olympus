@@ -18,4 +18,5 @@
 #
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/olympus.mk
+    $(LOCAL_DIR)/olympus.mk \
+    $(LOCAL_DIR)/cm.mk
