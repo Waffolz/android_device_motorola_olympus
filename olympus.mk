@@ -30,7 +30,8 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/root/init.trace.rc:root/init.trace.rc \
     $(LOCAL_PATH)/root/init.olympus.usb.rc:root/init.olympus.usb.rc \
     $(LOCAL_PATH)/root/ueventd.olympus.rc:root/ueventd.olympus.rc \
-    $(LOCAL_PATH)/root/fstab.olympus:root/fstab.olympus
+    $(LOCAL_PATH)/root/fstab.olympus:root/fstab.olympus \
+    $(LOCAL_PATH)/twrp.fstab:recovery/root/etc/twrp.fstab
 
 ## (2) Also get non-open-source GSM-specific aspects if available
 $(call inherit-product-if-exists, vendor/motorola/olympus/olympus-vendor.mk)
