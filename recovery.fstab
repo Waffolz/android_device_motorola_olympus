@@ -1,11 +1,15 @@
-# mount point	fstype		device			[device2]
+# Android fstab file.
+#<src>                          <mnt_point>         <type>    <mnt_flags and options>                                                          <fs_mgr_flags>
+# The filesystem that contains the filesystem checker binary (typically /system) cannot
+# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
+/dev/block/mmcblk0p12           /system             ext4      ro,noatime,nodiratime,barrier=1                                                  wait
+/dev/block/mmcblk0p16           /data               ext4      rw,nosuid,nodev,noatime,nodiratime,barrier=1,noauto_da_alloc                     wait,check,encryptable=footer,length=-16384
+/dev/block/mmcblk0p15           /cache              ext4      rw,nosuid,nodev,noatime,nodiratime,barrier=1,noauto_da_alloc                     wait,check
+/dev/block/mmcblk0p18           /sdcard             vfat      defaults
+/dev/block/mmcblk1p1            /external_sd        auto      defaults
+/devices/platform/sdhci-tegra.3/mmc_host/mmc0*  auto      vfat       defaults   wait,voldmanaged=sdcard0:18
+/devices/platform/sdhci-tegra.2/mmc_host/mmc2*  auto      auto       defaults   wait,voldmanaged=sdcard1:auto
+/devices/platform/tegra-ehci.2/usb1/1-1/1-1:1.0* auto    auto    defaults       voldmanaged=usbdisk:auto
+/dev/block/mmcblk0p11           /boot               emmc      defaults                                                                         defaults
+/dev/block/mmcblk0p10           /recovery           emmc      defaults                                                                         defaults
 
-/boot		emmc		/dev/block/mmcblk0p11
-/cache		ext4		/dev/block/mmcblk0p15
-/data		ext4		/dev/block/mmcblk0p16	length=-16384
-/sdcard		vfat		/dev/block/mmcblk1p1
-/emmc		vfat    	/dev/block/mmcblk0p18
-/system		ext4		/dev/block/mmcblk0p12
-/recovery	emmc		/dev/block/mmcblk0p10
-/osh		ext3		/dev/block/mmcblk0p13
-/preinstall	ext3		/dev/block/mmcblk0p17

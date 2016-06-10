@@ -100,7 +100,7 @@ PRODUCT_PACKAGES += \
 	olympus_fw_bcmdhd_apsta.bin \
 	olympus_fw_bcmdhd_p2p.bin
 
-PRODUCT_PACKAGES := \
+PRODUCT_PACKAGES += \
 	libwpa_client \
 	hostapd \
 	wpa_supplicant \
