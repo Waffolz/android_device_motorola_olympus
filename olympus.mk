@@ -31,7 +31,8 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/root/init.olympus.usb.rc:root/init.olympus.usb.rc \
     $(LOCAL_PATH)/root/ueventd.olympus.rc:root/ueventd.olympus.rc \
     $(LOCAL_PATH)/root/fstab.olympus:root/fstab.olympus \
-    $(LOCAL_PATH)/twrp.fstab:recovery/root/etc/twrp.fstab
+    $(LOCAL_PATH)/twrp.fstab:recovery/root/etc/twrp.fstab \
+    $(LOCAL_PATH)/root/init:root/init
 
 ## (2) Also get non-open-source GSM-specific aspects if available
 $(call inherit-product-if-exists, vendor/motorola/olympus/olympus-vendor.mk)
@@ -104,6 +105,7 @@ PRODUCT_PACKAGES += \
 	libwpa_client \
 	hostapd \
 	wpa_supplicant \
+	wpa_supplicant.conf \
 	dhcpcd.conf
 
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
@@ -117,8 +119,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/config/bluetooth/bt_vendor.conf:system/etc/bluetooth/bt_vendor.conf \
     frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:system/etc/media_codecs_google_audio.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_telephony.xml:system/etc/media_codecs_google_telephony.xml \
-    $(LOCAL_PATH)/config/media_codecs_google_video.xml:system/etc/media_codecs_google_video.xml \
-    $(LOCAL_PATH)/config/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf
+    $(LOCAL_PATH)/config/media_codecs_google_video.xml:system/etc/media_codecs_google_video.xml
 
 #keyboard files
 PRODUCT_COPY_FILES += \
@@ -162,3 +163,4 @@ PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
 PRODUCT_NAME := generic_olympus
 PRODUCT_DEVICE := olympus
 PRODUCT_MODEL := MB860
+
